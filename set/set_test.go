@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"fmt"
 	"math/big"
+	"sort"
 	"testing"
 
 	"github.com/stretchr/testify/require"
@@ -14,52 +15,156 @@ var (
 	resultBool  bool
 )
 
-func ExampleSet() {
-	setA := FromSlice([]int{1, 2, 3, 1, 2, 3})
-	setB := FromSlice([]int{3, 4, 5})
+func ExampleFromSlice() {
+	s := FromSlice([]int{1, 2, 3, 1, 2, 3})
+	// need to check for each individually since set is unordered, can't rely on Values()
+	fmt.Println(s.Has(1), s.Has(2), s.Has(3), s.Has(4))
+	fmt.Println(s.Len())
+	// Output:
+	// true true true false
+	// 3
+}
 
-	// remember, sets are unordered, so the output might be too!
-	fmt.Println("setA", setA.Values())
-	fmt.Println("setB", setB.Values())
+func ExampleSet_Add() {
+	s := FromSlice([]int{1, 2, 3})
+	s.Add(3, 4, 5)
+	fmt.Println(s.Len())
+	s.Add(3)
+	fmt.Println(s.Len())
+	s.Add(6)
+	fmt.Println(s.Len())
+	// Output:
+	// 5
+	// 5
+	// 6
+}
 
-	fmt.Println("A.Len() == len(A)", setA.Len(), len(setA))
-	fmt.Println("A.Has(1), A.Has(999)", setA.Has(1), setA.Has(999))
+func ExampleSet_Delete() {
+	s := FromSlice([]int{1, 2, 3})
+	fmt.Println(s.Len(), s.Has(3))
+	s.Delete(3)
+	fmt.Println(s.Len(), s.Has(3))
+	// Output:
+	// 3 true
+	// 2 false
+}
 
-	// add 8, 9, 10 to A (1, 2, 3, 8, 9, 10)
-	setA.Add([]int{8, 9, 10}...)
-	fmt.Println("Added 8, 9, 10", setA.Values())
+func ExampleSet_Has() {
+	s := FromSlice([]int{1, 2, 3})
+	fmt.Println(s.Has(1), s.Has(2), s.Has(3), s.Has(4))
+	// Output: true true true false
+}
 
-	// delete 8, 9, 10 from A (1, 2, 3)
-	setA.Delete([]int{8, 9, 10}...)
-	fmt.Println("Removed 8, 9, 10", setA.Values())
+func ExampleSet_Has_empty() {
+	s := FromSlice([]int{})
+	fmt.Println(s.Has(1), s.Has(2), s.Has(3), s.Has(4))
+	// Output: false false false false
+}
 
-	// combination of both sets (1, 2, 3, 4, 5)
-	fmt.Println("Union A ∪ B", setA.Union(setB).Values())
+func ExampleSet_Len() {
+	s := FromSlice([]int{1, 2, 3})
+	fmt.Println(s.Len())
+	// Output: 3
+}
 
-	// things that exist in both sets (3)
-	fmt.Println("Intersection A ∩ B", setA.Intersection(setB).Values())
-
-	// produces the things in setA that are not in setB (1, 2)
-	fmt.Println("Difference A-B", setA.Difference(setB).Values())
-	// and vice versa (4, 5)
-	fmt.Println("Difference B-A", setB.Difference(setA).Values())
-
-	// things that are _not_ in both sets - opposite of Intersection (1, 2, 4, 5)
-	fmt.Println("Symm Diff A △ B", setA.SymmetricalDifference(setB).Values())
-
-	// Clone A as C, edit C, C != A
-	setC := setA.Clone()
-	setC.Add(999)
-	fmt.Println("A, C", setA.Values(), setC.Values())
-
-	// run a callback on each element of A, multiplying by 10
-	setX := make(Set[int], len(setA))
-	setA.ForEach(
-		func(v int) {
-			setX.Add(v * 10)
+func ExampleSet_ForEach() {
+	s := FromSlice([]int{1, 2, 3})
+	out := make(Set[int], 0)
+	s.ForEach(
+		func(i int) {
+			out.Add(i * 2)
 		},
 	)
-	fmt.Println("A values * 10", setX.Values())
+	fmt.Println(out.Has(1), out.Has(2), out.Has(4), out.Has(6))
+	// Output: false true true true
+}
+
+func ExampleSet_Values() {
+	s := FromSlice([]int{1, 2, 3})
+	v := s.Values()
+	// note, Set is unordered so we have to sort the values first before testing against them
+	sort.Ints(v)
+	fmt.Println(v)
+	// Output: [1 2 3]
+}
+
+func ExampleSet_Clone() {
+	s1 := FromSlice([]int{1, 2, 3})
+	s2 := s1.Clone()
+	v1 := s1.Values()
+	sort.Ints(v1)
+	v2 := s2.Values()
+	sort.Ints(v2)
+	fmt.Println(v1, v2)
+
+	s1.Add(999)
+	v1 = s1.Values()
+	sort.Ints(v1)
+	fmt.Println(v1, v2)
+
+	// Output:
+	// [1 2 3] [1 2 3]
+	// [1 2 3 999] [1 2 3]
+}
+
+func ExampleSet_Union() {
+	s1 := FromSlice([]int{1, 2})
+	s2 := FromSlice([]int{2, 3})
+	u := s1.Union(s2)
+	v := u.Values()
+	sort.Ints(v)
+	fmt.Println(v)
+	// Output: [1 2 3]
+}
+
+func ExampleSet_Intersection() {
+	s1 := FromSlice([]int{1, 2})
+	s2 := FromSlice([]int{2, 3})
+	i := s1.Intersection(s2)
+	v := i.Values()
+	sort.Ints(v)
+	fmt.Println(v)
+	// Output: [2]
+}
+
+func ExampleSet_Difference() {
+	s1 := FromSlice([]int{1, 2, 3})
+	s2 := FromSlice([]int{2, 3, 4})
+
+	// difference is "directional" and will return the things in s1 that are not in s2
+	d1 := s1.Difference(s2)
+	v1 := d1.Values()
+	sort.Ints(v1)
+	fmt.Println(v1)
+
+	// and vice versa
+	d2 := s2.Difference(s1)
+	v2 := d2.Values()
+	sort.Ints(v2)
+	fmt.Println(v2)
+	// Output:
+	// [1]
+	// [4]
+}
+
+func ExampleSet_SymmetricalDifference() {
+	s1 := FromSlice([]int{1, 2, 3})
+	s2 := FromSlice([]int{2, 3, 4})
+
+	// Symmetrical difference is the inverse of intersection (anything not common to s1 and s2)
+	d := s1.SymmetricalDifference(s2)
+	v := d.Values()
+	sort.Ints(v)
+	fmt.Println(v)
+	// Output: [1 4]
+}
+
+func ExampleSet_Equals() {
+	s1 := FromSlice([]int{1, 2, 3})
+	s2 := FromSlice([]int{1, 2, 3})
+	s3 := FromSlice([]int{1, 2})
+	fmt.Println(s1.Equals(s2), s1.Equals(s3))
+	// Output: true false
 }
 
 func TestFromSlice(t *testing.T) {
