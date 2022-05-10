@@ -1,12 +1,73 @@
 package queue
 
 import (
+	"fmt"
 	"testing"
 
 	"github.com/stretchr/testify/require"
 )
 
-func TestBasics(t *testing.T) {
+func ExampleNewQueue() {
+	q := NewQueue[int]()
+	fmt.Println(q.Len(), q.IsEmpty())
+	// Output: 0 true
+}
+
+func ExampleQueue_IsEmpty() {
+	q := NewQueue[int]()
+	fmt.Println(q.IsEmpty())
+	// Output: true
+}
+
+func ExampleQueue_Len() {
+	q := NewQueue[int]()
+	q.Enqueue(1, 2, 3)
+	fmt.Println(q.Len())
+	// Output: 3
+}
+
+func ExampleQueue_Enqueue() {
+	q := NewQueue[int]()
+	q.Enqueue(3)
+	q.Enqueue(1, 2)
+	fmt.Println(q.Values())
+	// Output: [3 1 2]
+}
+
+func ExampleQueue_Dequeue() {
+	q := NewQueue[int]()
+	q.Enqueue(1)
+	fmt.Println(q.Dequeue())
+	// Output: 1 <nil>
+}
+
+func ExampleQueue_Dequeue_error() {
+	q := NewQueue[int]()
+	fmt.Println(q.Dequeue())
+	// Output: 0 queue is empty
+}
+
+func ExampleQueue_Peek() {
+	q := NewQueue[int]()
+	q.Enqueue(1)
+	fmt.Println(q.Peek())
+	// Output: 1 <nil>
+}
+
+func ExampleQueue_Peek_error() {
+	q := NewQueue[int]()
+	fmt.Println(q.Peek())
+	// Output: 0 queue is empty
+}
+
+func ExampleQueue_Values() {
+	q := NewQueue[int]()
+	q.Enqueue(1, 2, 3)
+	fmt.Println(q.Values())
+	// Output: [1 2 3]
+}
+
+func TestQueue_Basics(t *testing.T) {
 	q := NewQueue[int]()
 	require.True(t, q.IsEmpty())
 
@@ -27,7 +88,7 @@ func TestBasics(t *testing.T) {
 	require.Error(t, err)
 }
 
-func TestPeek(t *testing.T) {
+func TestQueue_Peek(t *testing.T) {
 	q := NewQueue[int]()
 	_, err := q.Peek()
 	require.Error(t, err)
