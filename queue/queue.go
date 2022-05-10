@@ -9,6 +9,14 @@ func NewQueue[T any]() *Queue[T] {
 	return &queue
 }
 
+func (q *Queue[T]) IsEmpty() bool {
+	return q.Len() == 0
+}
+
+func (q *Queue[T]) Len() int {
+	return len(*q)
+}
+
 func (q *Queue[T]) Enqueue(values ...T) {
 	for _, i := range values {
 		*q = append(*q, i)
@@ -23,14 +31,6 @@ func (q *Queue[T]) Dequeue() (T, error) {
 	v := (*q)[0]
 	*q = (*q)[1:]
 	return v, nil
-}
-
-func (q *Queue[T]) IsEmpty() bool {
-	return q.Len() == 0
-}
-
-func (q *Queue[T]) Len() int {
-	return len(*q)
 }
 
 func (q *Queue[T]) Peek() (T, error) {
