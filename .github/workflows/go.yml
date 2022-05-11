@@ -20,6 +20,10 @@ jobs:
         go-version: ${{ matrix.version }}
 
   test:
+    permissions:
+      contents: read
+      issues: write
+      pull-requests: write
     needs: ["deps"]
     strategy:
       matrix:
@@ -31,23 +35,27 @@ jobs:
       uses: ./.github/actions/setup-go
       with:
         go-version: ${{ matrix.version }}
+    - name: Main branch coverage
+      uses: actions/cache@v3
+      if: matrix.version == '1.18.1'
+      with:
+        path: |
+          main.lcov
+        key: ${{ runner.os }}-${{ github.ref }}-${{ github.sha }}
+        restore-keys: |
+          ${{ runner.os }}-refs/heads/main-
     - name: Test and Bench
-      run: go test -v -bench=. ./...
-
-  build:
-    needs: ["deps"]
-    strategy:
-      matrix:
-        version: ['1.18.0', '1.18.1']
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v3
-    - name: Set up Go
-      uses: ./.github/actions/setup-go
+      run: go test -v -coverprofile coverage.out -bench -race ./...
+    - uses: jandelgado/gcov2lcov-action@v1.0.5
+      if: matrix.version == '1.18.1'
+    - name: Store main branch lcov
+      if: github.ref == 'refs/heads/main' && matrix.version == '1.18.1'
+      run: cp coverage.lcov main.lcov
+    - name: Code Coverage Report
+      uses: osmind-development-org/lcov-reporter-action@v0.3.2
+      if: matrix.version == '1.18.1' && github.event_name == 'pull_request'
       with:
-        go-version: ${{ matrix.version }}
-
-    - name: Build and Run
-      run: |
-        go build
-        go run ./main.go
+        lcov-file: ./coverage.lcov
+        lcov-base: ./main.lcov
+        delete-old-comments: true
+        github-token: ${{ secrets.GITHUB_TOKEN }}
