@@ -45,7 +45,7 @@ jobs:
         restore-keys: |
           ${{ runner.os }}-refs/heads/main-
     - name: Test and Bench
-      run: go test -v -coverprofile coverage.out -bench -race ./...
+      run: go test -v -coverprofile coverage.out -bench=. -race ./...
     - uses: jandelgado/gcov2lcov-action@v1.0.5
       if: matrix.version == '1.18.1'
     - name: Store main branch lcov
