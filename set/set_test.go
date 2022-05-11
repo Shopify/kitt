@@ -232,6 +232,9 @@ func TestEquals(t *testing.T) {
 	set4 := FromSlice([]int{1, 2, 3, 4})
 	require.False(t, set3.Equals(set4))
 	require.False(t, set4.Equals(set3))
+
+	set5 := FromSlice([]int{2, 3, 4})
+	require.False(t, set.Equals(set5))
 }
 
 func TestUnion(t *testing.T) {
