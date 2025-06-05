@@ -13,7 +13,7 @@ jobs:
         version: ['1.22.0']
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Set up Go
       uses: ./.github/actions/setup-go
       with:
@@ -30,13 +30,13 @@ jobs:
         version: ['1.22.0']
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v3
+    - uses: actions/checkout@f43a0e5ff2bd294095638e18286ca9a3d1956744 # v3.6.0
     - name: Set up Go
       uses: ./.github/actions/setup-go
       with:
         go-version: ${{ matrix.version }}
     - name: Main branch coverage
-      uses: actions/cache@v3
+      uses: actions/cache@2f8e54208210a422b2efd51efaa6bd6d7ca8920f # v3.4.3
       if: matrix.version == '1.22.0'
       with:
         path: |
@@ -48,13 +48,13 @@ jobs:
       run: go test -v -coverprofile coverage.out -race ./...
     - name: Bench
       run: go test -v -run ^$ -bench . ./...
-    - uses: jandelgado/gcov2lcov-action@v1.0.9
+    - uses: jandelgado/gcov2lcov-action@c680c0f7c7442485f1749eb2a13e54a686e76eb5 # v1.0.9
       if: matrix.version == '1.22.0'
     - name: Store main branch lcov
       if: github.ref == 'refs/heads/main' && matrix.version == '1.22.0'
       run: cp coverage.lcov main.lcov
     - name: Code Coverage Report
-      uses: osmind-development-org/lcov-reporter-action@v0.3.2
+      uses: osmind-development-org/lcov-reporter-action@e10d6f81f9356115b560343f8309268b75aa05d6 # v0.3.2
       if: matrix.version == '1.22.0' && github.event_name == 'pull_request'
       with:
         lcov-file: ./coverage.lcov
